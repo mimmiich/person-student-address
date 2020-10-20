@@ -61,12 +61,14 @@ public:
 		else 
 			return other;
 	}
-	friend istream& input(istream& istr, Person& obj) { //ochakva vyvejdane na  3  stringa
-		istr >> obj.name >>  obj.DateOfBirth; // >> obj.gender?
+	friend istream& input(istream& istr, Person& obj) { 
+		string pol;
+		istr >> obj.name >> pol >> obj.DateOfBirth ;
+		StringToEnum(pol); // <----------------
 		return istr;
 	}
 	friend ostream& output(ostream& ostr, const Person& obj) {
-		ostr << obj.name << " " << obj.gender << " " << obj.DateOfBirth << endl;
+		ostr << obj.name << ", " << obj.gender << ", " << obj.DateOfBirth << endl;
 		return ostr;
 	}
 };
@@ -120,7 +122,7 @@ public:
 		ostr << obj.city << " " << obj.street << " " << obj.postal_code << endl;
 		return ostr;
 	}
-	friend istream& input(istream& istr, Address& obj) { //ochakva vyvejdane na  3  stringa
+	friend istream& input(istream& istr, Address& obj) { 
 		istr >> obj.city >> obj.street >> obj.postal_code;
 		return istr;
 	}
@@ -135,13 +137,15 @@ public:
 	Student() {
 		EGN = ""; Fnumber = "";
 	}
-	Student(string n, G s, string d , string e, string num, Address):Person(n,s,d) {
+	Student(string n, G s, string d , string e, string num, Address a):Person(n,s,d) {
 		EGN = e;
 		Fnumber = num;
+		adr = a;
 	}
-	Student(string e, string num, Address) { 
+	Student(string e, string num, Address a) { 
 		EGN = e;
 		Fnumber = num;
+		adr = a;
 	}
 	Student(const Student& obj) {
 		EGN = obj.EGN;
@@ -162,16 +166,53 @@ public:
 	}
 	void print() {
 		Person::print();
-		cout << ", " << EGN << ", " << Fnumber << ", " << endl;
+		cout << ", " << EGN << ", " << Fnumber << ", ";
+		adr.print();
+		cout << endl;
+		
+	}
+	G StringToEnum(string s) {
+		if (s == "male")
+			return male;
+		else if (s == "female")
+			return female;
+		else
+			return other;
 	}
 	friend ostream&output(ostream&ostr, const Student&obj) { 
-		ostr << obj.name << " " << obj.gender << " " << obj.DateOfBirth << " " << obj.EGN << " " << obj.Fnumber << endl; // obj.adr ?
+		ostr << obj.name << " " << obj.gender << " " << obj.DateOfBirth << " ";
+		ostr << obj.EGN << " " << obj.Fnumber;
+		adr.print(); 
+		ostr << endl;
 		return ostr;
 	}
-	friend istream&input(istream&istr, Student&obj) { //ochakva vyvejdane na  5  stringa
-		istr >> obj.name >> obj.DateOfBirth >> obj.EGN >> obj.Fnumber ; // >> obj.gender
+	friend istream&input(istream&istr, Student&obj) { 
+		string pol;
+		Address a; 
+		istr >> obj.name;
+		istr>> pol >> obj.DateOfBirth >> obj.EGN >> obj.Fnumber; 
+		istr >> a; // <-------------------
+		StringToEnum(pol); // <-------------------------
 		return istr;
 	}
+	int GetAge() {
+		int a = 2020 - stoi(DateOfBirth.substr(6, 4));
+		return a;
+	}
+	bool EqualAge(Student& obj) {
+		return this->GetAge() == obj.GetAge();
+	}
+	bool DiffAge(Student& obj) {
+		return this->GetAge() != obj.GetAge();
+	}
+	bool IsYounger(Student& obj) {
+		return this->GetAge() < obj.GetAge();
+	}
+	bool IsOlder(Student& obj) {
+		return this->GetAge() > obj.GetAge();
+	}
+
+
 	bool isValid() {
 		if (EGN.length() == 10) {
 			if (DateOfBirth.substr(8, 2) == EGN.substr(0, 2)) {
@@ -179,8 +220,8 @@ public:
 				int a = stoi(s);
 				if (a < 2000 && DateOfBirth.substr(3, 2) == EGN.substr(2, 2) || a >= 2000 && stoi(DateOfBirth.substr(3, 2))+40 == stoi(EGN.substr(2, 2))) { 
 					if (DateOfBirth.substr(0, 2) == EGN.substr(4, 2)) {
-						// za 6ta, 7ma i 8ma cifra ot EGN-to e svyrzano s regiona na rajdane i t.n, za tova propuskam, a i stava mnogo slojno
-						// nadolo e za kontrolnata (posledna) cifra
+						// 6ta, 7ma i 8ma cifra ot EGN-to sa svyrzani s regiona na rajdane i t.n, za tova propuskam, a i stava mnogo slojno
+						// za kontrolnata (posledna) cifra 
 						int arr[10];
 						for (int i = 0; i < 10; i++) {
 							arr[i] = EGN[i] - '0';
@@ -202,6 +243,7 @@ public:
 		}
 		else return false;
 	} 
+
 };
  
 
@@ -226,9 +268,16 @@ int main() {
 		cout << p4.getEGN() << " is not a valid ENG."<<endl; 
 	Student p5("Ivan", male, "22.02.1996", "9621020510", "19621699", Address("Varna", "Vladislavovo", "9023"));
 	//Student p6;
-	//cout << "Input Student(name, gender, date, EGN, Fnumber): ";
+	//cout << "Input Student(name, gender, date, EGN, Fnumber, adr): ";
 	//cin >> p6;
-	
+	cout << "Age of p5: " << p5.GetAge() << endl;
+	if (p4.EqualAge(p5))
+		cout << "equal age" << endl;
+	else
+		cout << "diff age" << endl;
+	//fstream oFile("Tema04.txt", ios_base::out);
+
+
 
 	system("pause");
 	return 0;
