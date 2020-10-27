@@ -1,6 +1,9 @@
 #include <iostream>
 #include <string>
+#include <fstream>
 using namespace std;
+const char Filename[] = "Domashno.txt";
+fstream fp;
 enum G { male, female, other };
 //string.substr(0,5) --> wzima 5 smvola ot nachalen simvol 0 (wklyuchitelno)
 
@@ -61,13 +64,13 @@ public:
 		else 
 			return other;
 	}
-	friend istream& input(istream& istr, Person& obj) { 
+	friend istream&operator>>(istream& istr, Person& obj) { 
 		string pol;
 		istr >> obj.name >> pol >> obj.DateOfBirth ;
-		StringToEnum(pol); // <----------------
+		obj.StringToEnum(pol); 
 		return istr;
 	}
-	friend ostream& output(ostream& ostr, const Person& obj) {
+	friend ostream&operator<<(ostream& ostr, const Person& obj) {
 		ostr << obj.name << ", " << obj.gender << ", " << obj.DateOfBirth << endl;
 		return ostr;
 	}
@@ -118,11 +121,11 @@ public:
 	void print() {
 		cout << city << ", " << street << ", " << postal_code << endl;
 	}
-	friend ostream& output(ostream&ostr, const Address&obj) { 
-		ostr << obj.city << " " << obj.street << " " << obj.postal_code << endl;
+	friend ostream&operator<<(ostream&ostr, const Address&obj) { 
+		ostr << obj.city << ", " << obj.street << ", " << obj.postal_code << endl;
 		return ostr;
 	}
-	friend istream& input(istream& istr, Address& obj) { 
+	friend istream&operator>>(istream& istr, Address& obj) { 
 		istr >> obj.city >> obj.street >> obj.postal_code;
 		return istr;
 	}
@@ -171,33 +174,27 @@ public:
 		cout << endl;
 		
 	}
-	G StringToEnum(string s) {
-		if (s == "male")
-			return male;
-		else if (s == "female")
-			return female;
-		else
-			return other;
-	}
-	friend ostream&output(ostream&ostr, const Student&obj) { 
-		ostr << obj.name << " " << obj.gender << " " << obj.DateOfBirth << " ";
-		ostr << obj.EGN << " " << obj.Fnumber;
-		adr.print(); 
-		ostr << endl;
+	friend ostream&operator<<(ostream&ostr, const Student&obj) { 
+		ostr << obj.name << ", " << obj.gender << ", " << obj.DateOfBirth << ", " << obj.EGN << ", " << obj.Fnumber << ", " << obj.adr << endl;
 		return ostr;
 	}
-	friend istream&input(istream&istr, Student&obj) { 
+	friend istream&operator>>(istream&istr, Student&obj) { 
 		string pol;
-		Address a; 
-		istr >> obj.name;
-		istr>> pol >> obj.DateOfBirth >> obj.EGN >> obj.Fnumber; 
-		istr >> a; // <-------------------
-		StringToEnum(pol); // <-------------------------
+		istr >> obj.name >> pol >> obj.DateOfBirth >> obj.EGN >> obj.Fnumber >> obj.adr;
+		obj.StringToEnum(pol); 
 		return istr;
 	}
 	int GetAge() {
-		int a = 2020 - stoi(DateOfBirth.substr(6, 4));
-		return a;
+		int a, b;
+		b = stoi(EGN.substr(0,2));
+		if (b <= 10) {
+			a = 2000 + b;
+			return 2020-a;
+		}
+		if (b > 10) {
+			a = 1900 + b;
+			return 2020 - a;
+		}
 	}
 	bool EqualAge(Student& obj) {
 		return this->GetAge() == obj.GetAge();
@@ -211,8 +208,6 @@ public:
 	bool IsOlder(Student& obj) {
 		return this->GetAge() > obj.GetAge();
 	}
-
-
 	bool isValid() {
 		if (EGN.length() == 10) {
 			if (DateOfBirth.substr(8, 2) == EGN.substr(0, 2)) {
@@ -246,6 +241,31 @@ public:
 
 };
  
+class GSM : public Student {
+private:
+	string number, model;
+	int tplan;
+public:
+	GSM() {
+		number = model = ""; tplan = 0;
+	}
+	void init(string num, string mod, int plan) {
+		number = num; model = mod; tplan = plan;
+	}
+	GSM(string num, string mod, int plan ) {
+		number = num; model = mod; tplan = plan;
+	}
+	int GetPlan() {
+		return tplan;
+	}
+	virtual string getGSMnumber() { return 0; }
+	virtual istream&inputGSM(istream&istr) = 0;
+	virtual ostream&outputGSM(ostream&ostr)const = 0;
+	friend istream&operator>>(istream& istr, Student& obj) {
+		istr >> obj.number >> obj.model >> obj.tplan;
+		return istr;
+	}
+};
 
 int main() {
 	
@@ -261,24 +281,30 @@ int main() {
 		array[i].print();
 	}
 	Student p4("Mariela", female, "01.06.2000" , "0046011017", "19621692", Address("Varna", "Vladislavovo", "9023"));
-	cout << "Person 4 name, gender, date, EGN, Fnumber: "; p4.print();
+	cout << "\nStudent 4 name, gender, date, EGN, Fnumber: "; p4.print();
 	if (p4.isValid())
 		cout << p4.getEGN() << " is a valid EGN."<<endl;
 	else
 		cout << p4.getEGN() << " is not a valid ENG."<<endl; 
 	Student p5("Ivan", male, "22.02.1996", "9621020510", "19621699", Address("Varna", "Vladislavovo", "9023"));
-	//Student p6;
-	//cout << "Input Student(name, gender, date, EGN, Fnumber, adr): ";
-	//cin >> p6;
-	cout << "Age of p5: " << p5.GetAge() << endl;
+	cout << "\nStudent 5 name, gender, date, EGN, Fnumber: "; //p5.print(); 
+	cout << p5;
+	cout << "\nAge of p5: " << p5.GetAge() << endl;
+	cout << "\nStudent 4 age compared to Student 5 age: ";
 	if (p4.EqualAge(p5))
 		cout << "equal age" << endl;
 	else
 		cout << "diff age" << endl;
-	//fstream oFile("Tema04.txt", ios_base::out);
+	Student p6;
+    cout << "Input Student(name, gender, date, EGN, Fnumber, adr(city, street, postal code)): ";
+    cin >> p6;
+	cout << "Person 6: " << p6;
 
 
-
+	fp.open(Filename, ios::out);
+	if (!fp) { cout << "\n Error in file! \n"; exit(1); }
+	fp.write((char*)array, sizeof(Student));
+	fp.close();
 	system("pause");
 	return 0;
 }
